@@ -111,7 +111,9 @@ def _extract_type_from_braces(content: str) -> Tuple[Optional[str], str]:
             brace_count -= 1
             if brace_count == 0:
                 # Found the closing brace
-                return content[1:i], content[i+1:].strip()
+                extracted = content[1:i].strip()
+                # Return None if the extracted type is empty
+                return None if not extracted else extracted, content[i+1:].strip()
     
     # No matching closing brace found
     return None, content
@@ -145,8 +147,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
         # First extract the type if present using brace matching
         param_type, remaining = _extract_type_from_braces(content_str)
         
-        if param_type is not None:
-            # Type was found, parse the rest (name, default, description)
+        if param_type is not None or content_str.startswith('{'):  # Added check for empty braces
+            # Type was found (or empty braces were found), parse the rest (name, default, description)
             # Handle parameter names with special characters like $ and _
             # Only match names that do not start with a digit
             
@@ -253,7 +255,7 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     elif tag == 'returns' or tag == 'return':
         # Use the same brace-matching function for return types
         returns_type, remaining = _extract_type_from_braces(content_str)
-        returns_desc = remaining if returns_type is not None else content_str
+        returns_desc = remaining if returns_type is not None or content_str.startswith('{') else content_str  # Added check for empty braces
             
         result['returns'] = {
             'type': returns_type,
@@ -263,7 +265,7 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     elif tag == 'throws' or tag == 'exception':
         # Use the same brace-matching function for exception types
         throws_type, remaining = _extract_type_from_braces(content_str)
-        throws_desc = remaining if throws_type is not None else content_str
+        throws_desc = remaining if throws_type is not None or content_str.startswith('{') else content_str  # Added check for empty braces
             
         result['throws'].append({
             'type': throws_type,
