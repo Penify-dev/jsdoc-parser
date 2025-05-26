@@ -4,18 +4,19 @@ from typing import Dict, List, Any, Union
 
 
 def compose_jsdoc(jsdoc_obj: Dict[str, Any]) -> str:
-    """
-    Compose a JSDoc string from a structured dictionary.
+    """Compose a JSDoc string from a structured dictionary.
+    
+    This function constructs a JSDoc comment based on the provided dictionary
+    structure, handling various components such as descriptions, parameters,
+    returns, throws, examples, and other tags. It ensures that each section is
+    correctly formatted and included in the final JSDoc string if present in the
+    input dictionary.
     
     Args:
-        jsdoc_obj (Dict[str, Any]): The dictionary representing the JSDoc structure
-        
+        jsdoc_obj (Dict[str, Any]): The dictionary representing the JSDoc structure.
+    
     Returns:
-        str: The formatted JSDoc string
-        
-    Example:
-        >>> compose_jsdoc({'description': 'Description', 'params': [{'name': 'name', 'type': 'string', 'description': 'The name'}]})
-        '/**\\n * Description\\n * @param {string} name - The name\\n */'
+        str: The formatted JSDoc string.
     """
     lines = ['/**']
     

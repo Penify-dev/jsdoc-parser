@@ -5,20 +5,21 @@ from typing import Dict, List, Any, Union, Optional
 
 
 def parse_jsdoc(docstring: str) -> Dict[str, Any]:
-    """
-    Parse a JSDoc string into a structured dictionary.
+    # Initialize the result dictionary
+    """Parse a JSDoc string into a structured dictionary.
+    
+    This function processes a JSDoc string to extract structured information such
+    as description, parameters, return values, exceptions, examples, and other
+    tags. It handles the removal of opening and closing markers, splits the content
+    into lines, and categorizes each line based on whether it is part of a tag or
+    the main description.
     
     Args:
-        docstring (str): The JSDoc string to parse
-        
-    Returns:
-        Dict[str, Any]: A dictionary representing the parsed JSDoc structure
+        docstring (str): The JSDoc string to parse.
     
-    Example:
-        >>> parse_jsdoc("/**\\n * Description\\n * @param {string} name - The name\\n */")
-        {'description': 'Description', 'params': [{'name': 'name', 'type': 'string', 'description': 'The name'}]}
+    Returns:
+        Dict[str, Any]: A dictionary representing the parsed JSDoc structure.
     """
-    # Initialize the result dictionary
     result = {
         'description': '',
         'params': [],
@@ -88,13 +89,20 @@ def parse_jsdoc(docstring: str) -> Dict[str, Any]:
 
 
 def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
-    """
-    Process a JSDoc tag and update the result dictionary.
+    """Process a JSDoc tag and update the result dictionary.
+    
+    The function processes different types of JSDoc tags such as `param`,
+    `returns`, `throws`, `example`, and others, updating the provided result
+    dictionary accordingly.
     
     Args:
-        tag (str): The tag name (without the @ symbol)
-        content (List[str]): The content lines associated with the tag
-        result (Dict[str, Any]): The dictionary to update
+        tag (str): The tag name (without the @ symbol).
+        content (List[str]): The content lines associated with the tag.
+        result (Dict[str, Any]): The dictionary to update.
+    
+    Returns:
+        None: The function modifies the `result` dictionary in place and does not return any
+            value.
     """
     content_str = ' '.join(content).strip()
     
