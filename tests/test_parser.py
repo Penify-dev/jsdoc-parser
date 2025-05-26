@@ -115,6 +115,13 @@ class TestJSDocParser(unittest.TestCase):
         self.assertEqual(len(result['params']), 2)
         self.assertEqual(result['params'][0]['name'], 'id')
         self.assertEqual(result['params'][1]['name'], 'options')
+        # Check nested parameters
+        self.assertIn('properties', result['params'][1])
+        self.assertEqual(len(result['params'][1]['properties']), 2)
+        self.assertEqual(result['params'][1]['properties'][0]['name'], 'timeout')
+        self.assertEqual(result['params'][1]['properties'][0]['type'], 'number')
+        self.assertEqual(result['params'][1]['properties'][1]['name'], 'silent')
+        self.assertEqual(result['params'][1]['properties'][1]['type'], 'boolean')
         
         self.assertEqual(result['returns']['type'], 'Promise<Result>')
         

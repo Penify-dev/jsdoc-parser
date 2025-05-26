@@ -101,12 +101,14 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     if tag == 'param' or tag == 'argument' or tag == 'arg':
         # Parse @param {type} name - description
         # Updated regex to handle parameter names with dots (nested parameters)
-        param_match = re.match(r'(?:{([^}]+)})?\s*([\w.]+)(?:\s*-\s*(.*))?', content_str)
+        # Also handle optional parameters with default values: [name=defaultValue]
+        param_match = re.match(r'(?:{([^}]+)})?\s*(?:\[)?([\w.]+)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?', content_str)
         
         if param_match:
             param_type = param_match.group(1)
             param_name = param_match.group(2)
-            param_desc = param_match.group(3) or ''
+            default_value = param_match.group(3)
+            param_desc = param_match.group(4) or ''
             
             # Check if this is a nested parameter (contains a dot)
             if '.' in param_name:
@@ -133,18 +135,30 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
                 if 'properties' not in parent_param:
                     parent_param['properties'] = []
                 
-                parent_param['properties'].append({
+                prop_data = {
                     'name': nested_name,
                     'type': param_type,
                     'description': param_desc
-                })
+                }
+                
+                if default_value:
+                    prop_data['default'] = default_value
+                    prop_data['optional'] = True
+                    
+                parent_param['properties'].append(prop_data)
             else:
                 # Regular non-nested parameter
-                result['params'].append({
+                param_data = {
                     'name': param_name,
                     'type': param_type,
                     'description': param_desc
-                })
+                }
+                
+                if default_value:
+                    param_data['default'] = default_value
+                    param_data['optional'] = True
+                    
+                result['params'].append(param_data)
     
     elif tag == 'returns' or tag == 'return':
         # Parse @returns {type} description
