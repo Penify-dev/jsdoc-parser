@@ -1,5 +1,12 @@
 # JSDoc Parser
 
+[![Tests](https://github.com/Penify-dev/jsdoc-parser/actions/workflows/tests.yml/badge.svg)](https://github.com/Penify-dev/jsdoc-parser/actions/workflows/tests.yml)
+[![Python Package](https://github.com/Penify-dev/jsdoc-parser/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Penify-dev/jsdoc-parser/actions/workflows/python-publish.yml)
+[![codecov](https://codecov.io/gh/Penify-dev/jsdoc-parser/branch/main/graph/badge.svg)](https://codecov.io/gh/Penify-dev/jsdoc-parser)
+[![PyPI version](https://badge.fury.io/py/jsdoc-parser.svg)](https://badge.fury.io/py/jsdoc-parser)
+[![Python Versions](https://img.shields.io/pypi/pyversions/jsdoc-parser.svg)](https://pypi.org/project/jsdoc-parser/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Python library for parsing and composing JSDoc strings.
 
 ## Installation
