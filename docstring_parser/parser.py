@@ -12,7 +12,8 @@ def parse_jsdoc(docstring: str) -> Dict[str, Any]:
     as description, parameters, return values, exceptions, examples, and other
     tags. It handles the removal of opening and closing markers, splits the content
     into lines, and categorizes each line based on whether it is part of a tag or
-    the main description.
+    the main description. The function also manages the parsing of individual tags
+    and their corresponding content.
     
     Args:
         docstring (str): The JSDoc string to parse.
@@ -93,7 +94,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     
     The function processes different types of JSDoc tags such as `param`,
     `returns`, `throws`, `example`, and others, updating the provided result
-    dictionary accordingly.
+    dictionary accordingly. It handles nested parameters, optional parameters with
+    default values, and various other tag formats.
     
     Args:
         tag (str): The tag name (without the @ symbol).
