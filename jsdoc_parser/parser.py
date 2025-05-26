@@ -108,9 +108,9 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     
     if tag == 'param' or tag == 'argument' or tag == 'arg':
         # Parse @param {type} name - description
-        # Updated regex to handle parameter names with dots (nested parameters)
+        # Updated regex to handle complex types including curly braces, generics, etc.
         # Also handle optional parameters with default values: [name=defaultValue]
-        param_match = re.match(r'(?:{([^}]+)})?\s*(?:\[)?([\w.]+)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?', content_str)
+        param_match = re.match(r'(?:{([^}]+(?:{[^}]*}[^}]*)*[^}]*?)})?\s*(?:\[)?([\w.]+)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?', content_str)
         
         if param_match:
             param_type = param_match.group(1)
@@ -192,7 +192,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     
     elif tag == 'returns' or tag == 'return':
         # Parse @returns {type} description
-        returns_match = re.match(r'(?:{([^}]+)})?\s*(.*)?', content_str)
+        # Updated regex to handle complex types with curly braces
+        returns_match = re.match(r'(?:{([^}]+(?:{[^}]*}[^}]*)*[^}]*?)})?\s*(.*)?', content_str)
         
         if returns_match:
             returns_type = returns_match.group(1)
@@ -205,7 +206,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     
     elif tag == 'throws' or tag == 'exception':
         # Parse @throws {type} description
-        throws_match = re.match(r'(?:{([^}]+)})?\s*(.*)?', content_str)
+        # Updated regex to handle complex types with curly braces
+        throws_match = re.match(r'(?:{([^}]+(?:{[^}]*}[^}]*)*[^}]*?)})?\s*(.*)?', content_str)
         
         if throws_match:
             throws_type = throws_match.group(1)
