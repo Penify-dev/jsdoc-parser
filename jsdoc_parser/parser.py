@@ -45,18 +45,19 @@ def parse_jsdoc(docstring: str) -> Dict[str, Any]:
     # Process the lines
     current_tag = None
     current_content = []
-    
+
     for line in lines:
         # Check if the line starts with a tag
         tag_match = re.match(r'^@(\w+)\s*(.*)', line)
-        
+
         if tag_match:
             # Process the previous tag if there was one
             if current_tag:
                 _process_tag(current_tag, current_content, result)
-            
+
             # Start a new tag
             current_tag = tag_match.group(1)
+            # Always start with the content from the tag line (even if empty)
             current_content = [tag_match.group(2)]
         elif current_tag:
             # Continue with the current tag
@@ -68,7 +69,7 @@ def parse_jsdoc(docstring: str) -> Dict[str, Any]:
                     result['description'] += '\n' + line
                 else:
                     result['description'] = line
-    
+
     # Process the last tag if there was one
     if current_tag:
         _process_tag(current_tag, current_content, result)
@@ -132,7 +133,13 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
         None: The function modifies the `result` dictionary in place and does not return any
             value.
     """
-    content_str = ' '.join(content).strip()
+    # Join content lines, preserving structure for examples but collapsing spaces for other tags
+    if tag == 'example':
+        content_str = '\n'.join(content).strip()
+    else:
+        # For non-example tags, join all lines with spaces, filtering out empty lines
+        # This handles cases where description starts on the next line after the tag
+        content_str = ' '.join([line.strip() for line in content if line.strip()]).strip()
     
     if tag == 'param' or tag == 'argument' or tag == 'arg':
         # First extract the type if present using brace matching
@@ -142,17 +149,19 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
             # Type was found, parse the rest (name, default, description)
             # Handle parameter names with special characters like $ and _
             # Only match names that do not start with a digit
-            param_match = re.match(r'(?:\[)?([a-zA-Z_$][\w$.]*)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?', remaining)
+            
+            # First try to match the full pattern with optional parts
+            param_match = re.match(r'(?:\[)?([a-zA-Z_$][\w$.]*)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?$', remaining)
             
             if param_match:
                 param_name = param_match.group(1)
                 default_value = param_match.group(2)
                 param_desc = param_match.group(3) or ''
                 # Detect if parameter is optional (enclosed in [])
-                is_optional = bool(re.match(r'\[([a-zA-Z_$][\w$.]*)(?:=[^]]+)?\]', remaining))
+                is_optional = bool(re.match(r'^\[([a-zA-Z_$][\w$.]*)(?:=[^]]+)?\]', remaining))
             else:
-                # Try simpler pattern for name without description
-                name_match = re.match(r'([a-zA-Z_$][\w$.*]*)(.*)', remaining)
+                # Try simpler pattern for just name
+                name_match = re.match(r'^([a-zA-Z_$][\w$.]*)(.*)$', remaining)
                 if name_match:
                     param_name = name_match.group(1)
                     remaining_text = name_match.group(2).strip()
