@@ -117,6 +117,14 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
             param_name = param_match.group(2)
             default_value = param_match.group(3)
             param_desc = param_match.group(4) or ''
+            
+            # If no type was specified but there's content after the name, treat it as description
+            if not param_type and not param_desc and ' ' in content_str:
+                # Try to parse as "name description" without type
+                simple_match = re.match(r'([\w.]+)\s+(.*)', content_str)
+                if simple_match:
+                    param_name = simple_match.group(1)
+                    param_desc = simple_match.group(2)
         else:
             # If the regex doesn't match, try a simpler pattern for name and description without type
             simple_match = re.match(r'([\w.]+)\s+(.*)', content_str)
