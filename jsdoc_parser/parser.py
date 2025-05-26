@@ -117,56 +117,70 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
             param_name = param_match.group(2)
             default_value = param_match.group(3)
             param_desc = param_match.group(4) or ''
-            
-            # Check if this is a nested parameter (contains a dot)
-            if '.' in param_name:
-                parent_name, nested_name = param_name.split('.', 1)
-                
-                # Find the parent parameter if it exists
-                parent_param = None
-                for param in result['params']:
-                    if param['name'] == parent_name:
-                        parent_param = param
-                        break
-                
-                # If parent not found, add it first (happens if child param appears before parent in JSDoc)
-                if not parent_param:
-                    parent_param = {
-                        'name': parent_name,
-                        'type': 'Object',
-                        'description': '',
-                        'properties': []
-                    }
-                    result['params'].append(parent_param)
-                
-                # Add the nested parameter as a property of the parent
-                if 'properties' not in parent_param:
-                    parent_param['properties'] = []
-                
-                prop_data = {
-                    'name': nested_name,
-                    'type': param_type,
-                    'description': param_desc
-                }
-                
-                if default_value:
-                    prop_data['default'] = default_value
-                    prop_data['optional'] = True
-                    
-                parent_param['properties'].append(prop_data)
+        else:
+            # If the regex doesn't match, try a simpler pattern for name and description without type
+            simple_match = re.match(r'([\w.]+)\s+(.*)', content_str)
+            if simple_match:
+                param_type = None
+                param_name = simple_match.group(1)
+                default_value = None
+                param_desc = simple_match.group(2)
             else:
-                # Regular non-nested parameter
-                param_data = {
-                    'name': param_name,
-                    'type': param_type,
-                    'description': param_desc
+                # If nothing matches, treat the entire content as the parameter name
+                param_type = None
+                param_name = content_str
+                default_value = None
+                param_desc = ''
+        
+        # Check if this is a nested parameter (contains a dot)
+        if '.' in param_name:
+            parent_name, nested_name = param_name.split('.', 1)
+            
+            # Find the parent parameter if it exists
+            parent_param = None
+            for param in result['params']:
+                if param['name'] == parent_name:
+                    parent_param = param
+                    break
+            
+            # If parent not found, add it first (happens if child param appears before parent in JSDoc)
+            if not parent_param:
+                parent_param = {
+                    'name': parent_name,
+                    'type': 'Object',
+                    'description': '',
+                    'properties': []
                 }
+                result['params'].append(parent_param)
+            
+            # Add the nested parameter as a property of the parent
+            if 'properties' not in parent_param:
+                parent_param['properties'] = []
+            
+            prop_data = {
+                'name': nested_name,
+                'type': param_type,
+                'description': param_desc
+            }
+            
+            if default_value:
+                prop_data['default'] = default_value
+                prop_data['optional'] = True
                 
-                if default_value:
-                    param_data['default'] = default_value
-                    param_data['optional'] = True
-                    
-                result['params'].append(param_data)
+            parent_param['properties'].append(prop_data)
+        else:
+            # Regular non-nested parameter
+            param_data = {
+                'name': param_name,
+                'type': param_type,
+                'description': param_desc
+            }
+            
+            if default_value:
+                param_data['default'] = default_value
+                param_data['optional'] = True
+                
+            result['params'].append(param_data)
     
     elif tag == 'returns' or tag == 'return':
         # Parse @returns {type} description
