@@ -1,7 +1,7 @@
 """Parser module for JSDoc strings."""
 
 import re
-from typing import Dict, List, Any, Union, Optional
+from typing import Dict, List, Any, Union, Optional, Tuple
 
 
 def parse_jsdoc(docstring: str) -> Dict[str, Any]:
@@ -88,6 +88,34 @@ def parse_jsdoc(docstring: str) -> Dict[str, Any]:
     return result
 
 
+def _extract_type_from_braces(content: str) -> Tuple[Optional[str], str]:
+    """Extract a type definition from curly braces, handling nested braces.
+    
+    Args:
+        content: The string potentially starting with a type in curly braces.
+        
+    Returns:
+        A tuple with (extracted_type, remaining_string) where extracted_type is None
+        if no valid type was found.
+    """
+    if not content.startswith('{'):
+        return None, content
+        
+    # Count braces to handle nested structures
+    brace_count = 0
+    for i, char in enumerate(content):
+        if char == '{':
+            brace_count += 1
+        elif char == '}':
+            brace_count -= 1
+            if brace_count == 0:
+                # Found the closing brace
+                return content[1:i], content[i+1:].strip()
+    
+    # No matching closing brace found
+    return None, content
+
+
 def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     """Process a JSDoc tag and update the result dictionary.
     
@@ -107,38 +135,47 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     content_str = ' '.join(content).strip()
     
     if tag == 'param' or tag == 'argument' or tag == 'arg':
-        # Parse @param {type} name - description
-        # Updated regex to handle complex types including curly braces, generics, etc.
-        # Also handle optional parameters with default values: [name=defaultValue]
-        param_match = re.match(r'(?:{([^}]+(?:{[^}]*}[^}]*)*[^}]*?)})?\s*(?:\[)?([\w.]+)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?', content_str)
+        # First extract the type if present using brace matching
+        param_type, remaining = _extract_type_from_braces(content_str)
         
-        if param_match:
-            param_type = param_match.group(1)
-            param_name = param_match.group(2)
-            default_value = param_match.group(3)
-            param_desc = param_match.group(4) or ''
+        if param_type is not None:
+            # Type was found, parse the rest (name, default, description)
+            # Handle parameter names with special characters like $ and _
+            param_match = re.match(r'(?:\[)?([a-zA-Z_$][\w$.]*)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?', remaining)
             
-            # If no type was specified but there's content after the name, treat it as description
-            if not param_type and not param_desc and ' ' in content_str:
-                # Try to parse as "name description" without type
-                simple_match = re.match(r'([\w.]+)\s+(.*)', content_str)
-                if simple_match:
-                    param_name = simple_match.group(1)
-                    param_desc = simple_match.group(2)
+            if param_match:
+                param_name = param_match.group(1)
+                default_value = param_match.group(2)
+                param_desc = param_match.group(3) or ''
+            else:
+                # Try simpler pattern for name without description
+                name_match = re.match(r'([a-zA-Z_$][\w$.*]*)(.*)', remaining)
+                if name_match:
+                    param_name = name_match.group(1)
+                    remaining_text = name_match.group(2).strip()
+                    if remaining_text.startswith('-'):
+                        param_desc = remaining_text[1:].strip()
+                    else:
+                        param_desc = remaining_text
+                    default_value = None
+                else:
+                    param_name = remaining
+                    default_value = None
+                    param_desc = ''
         else:
-            # If the regex doesn't match, try a simpler pattern for name and description without type
-            simple_match = re.match(r'([\w.]+)\s+(.*)', content_str)
+            # No type specified, try to parse as "name description"
+            simple_match = re.match(r'([a-zA-Z_$][\w$.*]*)\s+(.*)', content_str)
             if simple_match:
                 param_type = None
                 param_name = simple_match.group(1)
-                default_value = None
                 param_desc = simple_match.group(2)
+                default_value = None
             else:
-                # If nothing matches, treat the entire content as the parameter name
+                # Just a name
                 param_type = None
                 param_name = content_str
-                default_value = None
                 param_desc = ''
+                default_value = None
         
         # Check if this is a nested parameter (contains a dot)
         if '.' in param_name:
@@ -191,32 +228,24 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
             result['params'].append(param_data)
     
     elif tag == 'returns' or tag == 'return':
-        # Parse @returns {type} description
-        # Updated regex to handle complex types with curly braces
-        returns_match = re.match(r'(?:{([^}]+(?:{[^}]*}[^}]*)*[^}]*?)})?\s*(.*)?', content_str)
-        
-        if returns_match:
-            returns_type = returns_match.group(1)
-            returns_desc = returns_match.group(2) or ''
+        # Use the same brace-matching function for return types
+        returns_type, remaining = _extract_type_from_braces(content_str)
+        returns_desc = remaining if returns_type is not None else content_str
             
-            result['returns'] = {
-                'type': returns_type,
-                'description': returns_desc
-            }
+        result['returns'] = {
+            'type': returns_type,
+            'description': returns_desc
+        }
     
     elif tag == 'throws' or tag == 'exception':
-        # Parse @throws {type} description
-        # Updated regex to handle complex types with curly braces
-        throws_match = re.match(r'(?:{([^}]+(?:{[^}]*}[^}]*)*[^}]*?)})?\s*(.*)?', content_str)
-        
-        if throws_match:
-            throws_type = throws_match.group(1)
-            throws_desc = throws_match.group(2) or ''
+        # Use the same brace-matching function for exception types
+        throws_type, remaining = _extract_type_from_braces(content_str)
+        throws_desc = remaining if throws_type is not None else content_str
             
-            result['throws'].append({
-                'type': throws_type,
-                'description': throws_desc
-            })
+        result['throws'].append({
+            'type': throws_type,
+            'description': throws_desc
+        })
     
     elif tag == 'example':
         result['examples'].append(content_str)
