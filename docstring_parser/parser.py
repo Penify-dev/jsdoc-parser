@@ -100,18 +100,51 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     
     if tag == 'param' or tag == 'argument' or tag == 'arg':
         # Parse @param {type} name - description
-        param_match = re.match(r'(?:{([^}]+)})?\s*(\w+)(?:\s*-\s*(.*))?', content_str)
+        # Updated regex to handle parameter names with dots (nested parameters)
+        param_match = re.match(r'(?:{([^}]+)})?\s*([\w.]+)(?:\s*-\s*(.*))?', content_str)
         
         if param_match:
             param_type = param_match.group(1)
             param_name = param_match.group(2)
             param_desc = param_match.group(3) or ''
             
-            result['params'].append({
-                'name': param_name,
-                'type': param_type,
-                'description': param_desc
-            })
+            # Check if this is a nested parameter (contains a dot)
+            if '.' in param_name:
+                parent_name, nested_name = param_name.split('.', 1)
+                
+                # Find the parent parameter if it exists
+                parent_param = None
+                for param in result['params']:
+                    if param['name'] == parent_name:
+                        parent_param = param
+                        break
+                
+                # If parent not found, add it first (happens if child param appears before parent in JSDoc)
+                if not parent_param:
+                    parent_param = {
+                        'name': parent_name,
+                        'type': 'Object',
+                        'description': '',
+                        'properties': []
+                    }
+                    result['params'].append(parent_param)
+                
+                # Add the nested parameter as a property of the parent
+                if 'properties' not in parent_param:
+                    parent_param['properties'] = []
+                
+                parent_param['properties'].append({
+                    'name': nested_name,
+                    'type': param_type,
+                    'description': param_desc
+                })
+            else:
+                # Regular non-nested parameter
+                result['params'].append({
+                    'name': param_name,
+                    'type': param_type,
+                    'description': param_desc
+                })
     
     elif tag == 'returns' or tag == 'return':
         # Parse @returns {type} description
