@@ -197,6 +197,13 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     elif tag == 'example':
         result['examples'].append(content_str)
     
+    elif tag == 'description':
+        # Special handling for @description tag - add to the description field
+        if result['description']:
+            result['description'] += '\n' + content_str
+        else:
+            result['description'] = content_str
+    
     else:
         # Store other tags
         if tag not in result['tags']:
