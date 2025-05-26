@@ -1,8 +1,8 @@
 """Integration tests for the JSDoc parser and composer."""
 
 import unittest
-from docstring_parser.parser import parse_jsdoc
-from docstring_parser.composer import compose_jsdoc
+from jsdoc_parser.parser import parse_jsdoc
+from jsdoc_parser.composer import compose_jsdoc
 
 
 class TestJSDocIntegration(unittest.TestCase):

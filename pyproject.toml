@@ -25,4 +25,4 @@ dependencies = []
 "Bug Tracker" = "https://github.com/Penify-dev/jsdoc-parser/issues"
 
 [project.scripts]
-jsdoc-parser = "docstring_parser.cli:main"
+jsdoc-parser = "jsdoc_parser.cli:main"

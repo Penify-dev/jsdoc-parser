@@ -8,9 +8,9 @@ This script provides a simple command-line interface for parsing and composing J
 import argparse
 import json
 import sys
-from docstring_parser.parser import parse_jsdoc
-from docstring_parser.composer import compose_jsdoc
-from docstring_parser.utils import remove_jsdoc_component
+from jsdoc_parser.parser import parse_jsdoc
+from jsdoc_parser.composer import compose_jsdoc
+from jsdoc_parser.utils import remove_jsdoc_component
 
 
 def main():

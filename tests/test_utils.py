@@ -1,7 +1,7 @@
 """Tests for the JSDoc utils module."""
 
 import unittest
-from docstring_parser.utils import extract_type_info, merge_jsdoc_objects, remove_jsdoc_component
+from jsdoc_parser.utils import extract_type_info, merge_jsdoc_objects, remove_jsdoc_component
 
 
 class TestJSDocUtils(unittest.TestCase):

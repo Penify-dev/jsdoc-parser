@@ -1,7 +1,7 @@
 """Tests for the JSDoc parser module."""
 
 import unittest
-from docstring_parser.parser import parse_jsdoc
+from jsdoc_parser.parser import parse_jsdoc
 
 
 class TestJSDocParser(unittest.TestCase):

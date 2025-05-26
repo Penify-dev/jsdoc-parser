@@ -1,7 +1,7 @@
 """Tests for the JSDoc composer module."""
 
 import unittest
-from docstring_parser.composer import compose_jsdoc
+from jsdoc_parser.composer import compose_jsdoc
 
 
 class TestJSDocComposer(unittest.TestCase):
