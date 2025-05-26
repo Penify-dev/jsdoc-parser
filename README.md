@@ -47,6 +47,15 @@ print(new_jsdoc)
 - Support for various JSDoc tags: @param, @returns, @throws, etc.
 - Easy manipulation of JSDoc components
 
+## Test Coverage Report
+
+- **Total test cases:** 164
+- **Passing:** 162
+- **Skipped:** 2
+- **Failing:** 0
+
+All tests are currently passing except for 2 skipped due to current parser limitations.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
