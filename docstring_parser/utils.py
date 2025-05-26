@@ -5,22 +5,20 @@ import re
 
 
 def extract_type_info(type_str: str) -> Dict[str, Any]:
-    """
-    Extract detailed type information from a JSDoc type string.
+    """Extract detailed type information from a JSDoc type string.
+    
+    This function parses the input type string to determine if it represents a
+    union of types, a generic/template type with parameters, or a simple type. It
+    returns a dictionary containing the parsed type information.
     
     Args:
-        type_str (str): The type string from a JSDoc tag
-        
+        type_str (str): The type string from a JSDoc tag.
+    
     Returns:
-        Dict[str, Any]: A dictionary with parsed type information
-        
-    Example:
-        >>> extract_type_info('Array<string>')
-        {'name': 'Array', 'params': ['string']}
-        >>> extract_type_info('Object<string, number>')
-        {'name': 'Object', 'params': ['string', 'number']}
-        >>> extract_type_info('string|number')
-        {'union': ['string', 'number']}
+        Dict[str, Any]: A dictionary with parsed type information.
+            - If the type is a union, it includes a 'union' key with a list of types.
+            - If the type is generic/template, it includes 'name' and 'params' keys.
+            - If the type is simple, it only includes a 'name' key.
     """
     result = {}
     
@@ -65,15 +63,19 @@ def extract_type_info(type_str: str) -> Dict[str, Any]:
 
 
 def merge_jsdoc_objects(base: Dict[str, Any], overlay: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Merge two JSDoc objects, with the overlay taking precedence.
+    """Merge two JSDoc objects, with the overlay taking precedence.
+    
+    The function merges two dictionaries representing JSDoc objects. If a key
+    exists in both the base and overlay, the value from the overlay takes
+    precedence. For keys like 'params' and 'throws', it combines the lists while
+    ensuring that items with matching names are updated rather than duplicated.
     
     Args:
-        base (Dict[str, Any]): The base JSDoc object
-        overlay (Dict[str, Any]): The overlay JSDoc object that takes precedence
-        
+        base (Dict[str, Any]): The base JSDoc object.
+        overlay (Dict[str, Any]): The overlay JSDoc object that takes precedence.
+    
     Returns:
-        Dict[str, Any]: The merged JSDoc object
+        Dict[str, Any]: The merged JSDoc object.
     """
     result = base.copy()
     
@@ -128,16 +130,21 @@ def merge_jsdoc_objects(base: Dict[str, Any], overlay: Dict[str, Any]) -> Dict[s
 
 
 def remove_jsdoc_component(jsdoc_obj: Dict[str, Any], component_type: str, identifier: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Remove a component from a JSDoc object.
+    """Remove a specified component from a JSDoc object.
+    
+    This function modifies the provided JSDoc object by removing a component based
+    on the given type and identifier.  If no identifier is provided, it removes all
+    instances of the component type. The function handles various  component types
+    such as 'description', 'param', 'returns', 'throws', 'example', and 'tag'.
     
     Args:
-        jsdoc_obj (Dict[str, Any]): The JSDoc object
-        component_type (str): The component type to remove ('param', 'returns', 'throws', 'example', 'tag')
-        identifier (Optional[str]): The identifier of the component (e.g., param name, tag name)
-        
+        jsdoc_obj (Dict[str, Any]): The JSDoc object to be modified.
+        component_type (str): The type of component to remove ('param', 'returns', 'throws', 'example',
+            'tag').
+        identifier (Optional[str]): An optional identifier to specify which instance of the component to remove.
+    
     Returns:
-        Dict[str, Any]: The modified JSDoc object
+        Dict[str, Any]: The modified JSDoc object with the specified component removed.
     """
     result = jsdoc_obj.copy()
     
