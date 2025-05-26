@@ -14,7 +14,14 @@ from docstring_parser.utils import remove_jsdoc_component
 
 
 def main():
-    """Entry point for the command-line interface."""
+    """Entry point for the command-line interface.
+    
+    This function sets up an argument parser to handle different commands (`parse`,
+    `compose`, and `remove`) related to JSDoc strings. It processes the input data
+    based on the specified command, performs the required operations (parsing,
+    composing, or removing components), and handles errors appropriately. The
+    results are then output to either a file or standard output.
+    """
     parser = argparse.ArgumentParser(description='Parse and compose JSDoc strings')
     subparsers = parser.add_subparsers(dest='command', required=True, help='Command to execute')
     
