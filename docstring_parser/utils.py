@@ -176,7 +176,9 @@ def remove_jsdoc_component(jsdoc_obj: Dict[str, Any], component_type: str, ident
                         result['examples'].pop(idx)
                 except ValueError:
                     # If not an index, try to match content
-                    result['examples'] = [e for e in result['examples'] if identifier not in e]
+                    # Keep examples that don't contain the identifier
+                    original_examples = result['examples'].copy()
+                    result['examples'] = [e for e in original_examples if identifier not in e]
                 
                 if not result['examples']:
                     del result['examples']

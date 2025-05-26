@@ -175,25 +175,32 @@ class TestJSDocUtils(unittest.TestCase):
     
     def test_remove_jsdoc_component_example(self):
         """Test removing examples from a JSDoc object."""
-        jsdoc = {
+        # Test removing by index
+        jsdoc1 = {
             'description': 'Test description',
             'examples': ['Example 1', 'Example 2 with specific content', 'Example 3']
         }
+        result1 = remove_jsdoc_component(jsdoc1, 'example', '0')
+        self.assertEqual(len(result1['examples']), 2)
+        self.assertEqual(result1['examples'][0], 'Example 2 with specific content')
         
-        # Remove by index
-        result = remove_jsdoc_component(jsdoc, 'example', '0')
-        self.assertEqual(len(result['examples']), 2)
-        self.assertEqual(result['examples'][0], 'Example 2 with specific content')
+        # Test removing by content match
+        jsdoc2 = {
+            'description': 'Test description',
+            'examples': ['Example 1', 'Example 2 with specific content', 'Example 3']
+        }
+        result2 = remove_jsdoc_component(jsdoc2, 'example', 'specific')
+        self.assertEqual(len(result2['examples']), 2)
+        self.assertEqual(result2['examples'][0], 'Example 1')
+        self.assertEqual(result2['examples'][1], 'Example 3')
         
-        # Remove by content match
-        result = remove_jsdoc_component(jsdoc, 'example', 'specific')
-        self.assertEqual(len(result['examples']), 2)
-        self.assertEqual(result['examples'][0], 'Example 1')
-        self.assertEqual(result['examples'][1], 'Example 3')
-        
-        # Remove all examples
-        result = remove_jsdoc_component(jsdoc, 'example')
-        self.assertNotIn('examples', result)
+        # Test removing all examples
+        jsdoc3 = {
+            'description': 'Test description',
+            'examples': ['Example 1', 'Example 2 with specific content', 'Example 3']
+        }
+        result3 = remove_jsdoc_component(jsdoc3, 'example')
+        self.assertNotIn('examples', result3)
     
     def test_remove_jsdoc_component_tag(self):
         """Test removing tags from a JSDoc object."""
