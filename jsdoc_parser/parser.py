@@ -147,6 +147,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
                 param_name = param_match.group(1)
                 default_value = param_match.group(2)
                 param_desc = param_match.group(3) or ''
+                # Detect if parameter is optional (enclosed in [])
+                is_optional = bool(re.match(r'\[([a-zA-Z_$][\w$.]*)(?:=[^]]+)?\]', remaining))
             else:
                 # Try simpler pattern for name without description
                 name_match = re.match(r'([a-zA-Z_$][\w$.*]*)(.*)', remaining)
@@ -158,10 +160,12 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
                     else:
                         param_desc = remaining_text
                     default_value = None
+                    is_optional = False
                 else:
                     param_name = remaining
                     default_value = None
                     param_desc = ''
+                    is_optional = False
         else:
             # No type specified, try to parse as "name description"
             simple_match = re.match(r'([a-zA-Z_$][\w$.*]*)\s+(.*)', content_str)
@@ -170,12 +174,14 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
                 param_name = simple_match.group(1)
                 param_desc = simple_match.group(2)
                 default_value = None
+                is_optional = False
             else:
                 # Just a name
                 param_type = None
                 param_name = content_str
                 param_desc = ''
                 default_value = None
+                is_optional = False
         
         # Check if this is a nested parameter (contains a dot)
         if '.' in param_name:
@@ -211,6 +217,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
             if default_value:
                 prop_data['default'] = default_value
                 prop_data['optional'] = True
+            elif is_optional:
+                prop_data['optional'] = True
                 
             parent_param['properties'].append(prop_data)
         else:
@@ -223,6 +231,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
             
             if default_value:
                 param_data['default'] = default_value
+                param_data['optional'] = True
+            elif is_optional:
                 param_data['optional'] = True
                 
             result['params'].append(param_data)
