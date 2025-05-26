@@ -9,7 +9,10 @@ def extract_type_info(type_str: str) -> Dict[str, Any]:
     
     This function parses the input type string to determine if it represents a
     union of types, a generic/template type with parameters, or a simple type. It
-    returns a dictionary containing the parsed type information.
+    returns a dictionary containing the parsed type information. The function
+    checks for union types by looking for the '|' character, identifies
+    generics/templates using regular expressions, and handles nested generics by
+    managing bracket levels.
     
     Args:
         type_str (str): The type string from a JSDoc tag.
@@ -63,9 +66,9 @@ def extract_type_info(type_str: str) -> Dict[str, Any]:
 
 
 def merge_jsdoc_objects(base: Dict[str, Any], overlay: Dict[str, Any]) -> Dict[str, Any]:
-    """Merge two JSDoc objects, with the overlay taking precedence.
+    """Merge two JSDoc objects with the overlay taking precedence.
     
-    The function merges two dictionaries representing JSDoc objects. If a key
+    This function merges two dictionaries representing JSDoc objects. If a key
     exists in both the base and overlay, the value from the overlay takes
     precedence. For keys like 'params' and 'throws', it combines the lists while
     ensuring that items with matching names are updated rather than duplicated.
@@ -133,8 +136,8 @@ def remove_jsdoc_component(jsdoc_obj: Dict[str, Any], component_type: str, ident
     """Remove a specified component from a JSDoc object.
     
     This function modifies the provided JSDoc object by removing a component based
-    on the given type and identifier.  If no identifier is provided, it removes all
-    instances of the component type. The function handles various  component types
+    on the given type and identifier. If no identifier is provided, it removes all
+    instances of the component type. The function handles various component types
     such as 'description', 'param', 'returns', 'throws', 'example', and 'tag'.
     
     Args:
