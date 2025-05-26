@@ -91,9 +91,11 @@ def parse_jsdoc(docstring: str) -> Dict[str, Any]:
 def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
     """Process a JSDoc tag and update the result dictionary.
     
-    The function processes different types of JSDoc tags such as `param`,
-    `returns`, `throws`, `example`, and others, updating the provided result
-    dictionary accordingly.
+    This function processes different types of JSDoc tags such as `param`,
+    `returns`, `throws`, `example`, and others. It updates the provided result
+    dictionary accordingly. The function handles nested parameters with dots,
+    optional parameters with default values, and stores other tags in a structured
+    format within the result dictionary.
     
     Args:
         tag (str): The tag name (without the @ symbol).
