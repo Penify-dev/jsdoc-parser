@@ -141,6 +141,7 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
         if param_type is not None:
             # Type was found, parse the rest (name, default, description)
             # Handle parameter names with special characters like $ and _
+            # Only match names that do not start with a digit
             param_match = re.match(r'(?:\[)?([a-zA-Z_$][\w$.]*)(?:=([^]]+))?(?:\])?\s*(?:-\s*(.*))?', remaining)
             
             if param_match:
@@ -162,10 +163,8 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
                     default_value = None
                     is_optional = False
                 else:
-                    param_name = remaining
-                    default_value = None
-                    param_desc = ''
-                    is_optional = False
+                    # If the name doesn't match, skip this param (e.g., numeric param names)
+                    return
         else:
             # No type specified, try to parse as "name description"
             simple_match = re.match(r'([a-zA-Z_$][\w$.*]*)\s+(.*)', content_str)
@@ -177,11 +176,16 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
                 is_optional = False
             else:
                 # Just a name
-                param_type = None
-                param_name = content_str
-                param_desc = ''
-                default_value = None
-                is_optional = False
+                # Only accept names that do not start with a digit
+                if re.match(r'^[a-zA-Z_$][\w$.*]*$', content_str):
+                    param_type = None
+                    param_name = content_str
+                    param_desc = ''
+                    default_value = None
+                    is_optional = False
+                else:
+                    # Skip numeric or invalid param names
+                    return
         
         # Check if this is a nested parameter (contains a dot)
         if '.' in param_name:
