@@ -238,20 +238,37 @@ def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
             parent_param['properties'].append(prop_data)
         else:
             # Regular non-nested parameter
-            param_data = {
-                'name': param_name,
-                'type': param_type,
-                'description': param_desc
-            }
-            
-            if default_value:
-                param_data['default'] = default_value
-                param_data['optional'] = True
-            elif is_optional:
-                param_data['optional'] = True
-                
-            result['params'].append(param_data)
-    
+            # --- Begin patch: merge parent param if already exists (from child-first case) ---
+            existing_param = None
+            for param in result['params']:
+                if param['name'] == param_name:
+                    existing_param = param
+                    break
+            if existing_param:
+                # Update type and description if they are empty or default
+                if existing_param.get('type') in (None, 'Object') and param_type:
+                    existing_param['type'] = param_type
+                if not existing_param.get('description') and param_desc:
+                    existing_param['description'] = param_desc
+                if default_value:
+                    existing_param['default'] = default_value
+                    existing_param['optional'] = True
+                elif is_optional:
+                    existing_param['optional'] = True
+                # Do not append duplicate
+            else:
+                param_data = {
+                    'name': param_name,
+                    'type': param_type,
+                    'description': param_desc
+                }
+                if default_value:
+                    param_data['default'] = default_value
+                    param_data['optional'] = True
+                elif is_optional:
+                    param_data['optional'] = True
+                result['params'].append(param_data)
+            # --- End patch ---
     elif tag == 'returns' or tag == 'return':
         # Use the same brace-matching function for return types
         returns_type, remaining = _extract_type_from_braces(content_str)
