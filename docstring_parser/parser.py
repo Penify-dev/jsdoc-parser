@@ -1,0 +1,149 @@
+"""Parser module for JSDoc strings."""
+
+import re
+from typing import Dict, List, Any, Union, Optional
+
+
+def parse_jsdoc(docstring: str) -> Dict[str, Any]:
+    """
+    Parse a JSDoc string into a structured dictionary.
+    
+    Args:
+        docstring (str): The JSDoc string to parse
+        
+    Returns:
+        Dict[str, Any]: A dictionary representing the parsed JSDoc structure
+    
+    Example:
+        >>> parse_jsdoc("/**\\n * Description\\n * @param {string} name - The name\\n */")
+        {'description': 'Description', 'params': [{'name': 'name', 'type': 'string', 'description': 'The name'}]}
+    """
+    # Initialize the result dictionary
+    result = {
+        'description': '',
+        'params': [],
+        'returns': None,
+        'throws': [],
+        'examples': [],
+        'tags': {}
+    }
+    
+    # Clean up the docstring
+    docstring = docstring.strip()
+    
+    # Remove the opening and closing markers /** and */
+    if docstring.startswith('/**'):
+        docstring = docstring[3:]
+    if docstring.endswith('*/'):
+        docstring = docstring[:-2]
+        
+    # Split into lines and clean them up
+    lines = [line.strip() for line in docstring.split('\n')]
+    lines = [re.sub(r'^[ \t]*\*', '', line).strip() for line in lines]
+    
+    # Process the lines
+    current_tag = None
+    current_content = []
+    
+    for line in lines:
+        # Check if the line starts with a tag
+        tag_match = re.match(r'^@(\w+)\s*(.*)', line)
+        
+        if tag_match:
+            # Process the previous tag if there was one
+            if current_tag:
+                _process_tag(current_tag, current_content, result)
+            
+            # Start a new tag
+            current_tag = tag_match.group(1)
+            current_content = [tag_match.group(2)]
+        elif current_tag:
+            # Continue with the current tag
+            current_content.append(line)
+        else:
+            # This is part of the description
+            if line:
+                if result['description']:
+                    result['description'] += '\n' + line
+                else:
+                    result['description'] = line
+    
+    # Process the last tag if there was one
+    if current_tag:
+        _process_tag(current_tag, current_content, result)
+    
+    # Clean up the result
+    if not result['params']:
+        del result['params']
+    if result['returns'] is None:
+        del result['returns']
+    if not result['throws']:
+        del result['throws']
+    if not result['examples']:
+        del result['examples']
+    if not result['tags']:
+        del result['tags']
+    
+    return result
+
+
+def _process_tag(tag: str, content: List[str], result: Dict[str, Any]) -> None:
+    """
+    Process a JSDoc tag and update the result dictionary.
+    
+    Args:
+        tag (str): The tag name (without the @ symbol)
+        content (List[str]): The content lines associated with the tag
+        result (Dict[str, Any]): The dictionary to update
+    """
+    content_str = ' '.join(content).strip()
+    
+    if tag == 'param' or tag == 'argument' or tag == 'arg':
+        # Parse @param {type} name - description
+        param_match = re.match(r'(?:{([^}]+)})?\s*(\w+)(?:\s*-\s*(.*))?', content_str)
+        
+        if param_match:
+            param_type = param_match.group(1)
+            param_name = param_match.group(2)
+            param_desc = param_match.group(3) or ''
+            
+            result['params'].append({
+                'name': param_name,
+                'type': param_type,
+                'description': param_desc
+            })
+    
+    elif tag == 'returns' or tag == 'return':
+        # Parse @returns {type} description
+        returns_match = re.match(r'(?:{([^}]+)})?\s*(.*)?', content_str)
+        
+        if returns_match:
+            returns_type = returns_match.group(1)
+            returns_desc = returns_match.group(2) or ''
+            
+            result['returns'] = {
+                'type': returns_type,
+                'description': returns_desc
+            }
+    
+    elif tag == 'throws' or tag == 'exception':
+        # Parse @throws {type} description
+        throws_match = re.match(r'(?:{([^}]+)})?\s*(.*)?', content_str)
+        
+        if throws_match:
+            throws_type = throws_match.group(1)
+            throws_desc = throws_match.group(2) or ''
+            
+            result['throws'].append({
+                'type': throws_type,
+                'description': throws_desc
+            })
+    
+    elif tag == 'example':
+        result['examples'].append(content_str)
+    
+    else:
+        # Store other tags
+        if tag not in result['tags']:
+            result['tags'][tag] = []
+        result['tags'][tag].append(content_str)
