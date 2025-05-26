@@ -9,7 +9,10 @@ def extract_type_info(type_str: str) -> Dict[str, Any]:
     
     This function parses the input type string to determine if it represents a
     union of types, a generic/template type with parameters, or a simple type. It
-    returns a dictionary containing the parsed type information.
+    returns a dictionary containing the parsed type information. The function
+    handles union types by splitting the string on the pipe ('|') character and
+    processes generics/templates by matching the pattern 'name<params>' while
+    accounting for nested generics using bracket counting.
     
     Args:
         type_str (str): The type string from a JSDoc tag.
@@ -133,9 +136,11 @@ def remove_jsdoc_component(jsdoc_obj: Dict[str, Any], component_type: str, ident
     """Remove a specified component from a JSDoc object.
     
     This function modifies the provided JSDoc object by removing a component based
-    on the given type and identifier.  If no identifier is provided, it removes all
-    instances of the component type. The function handles various  component types
-    such as 'description', 'param', 'returns', 'throws', 'example', and 'tag'.
+    on the given type and identifier. If no identifier is provided, it removes all
+    instances of the component type. The function handles various component types
+    such as 'description', 'param', 'returns', 'throws', 'example', and 'tag'. It
+    processes each component type accordingly, ensuring that the JSDoc object
+    remains consistent after modification.
     
     Args:
         jsdoc_obj (Dict[str, Any]): The JSDoc object to be modified.
